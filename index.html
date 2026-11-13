@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Карта</title>
+  <link rel="stylesheet" href="https://unpkg.com" />
+  <script src="https://unpkg.com"></script>
+  <!-- Библиотека для чтения KMZ с учетом поворота картинок -->
+  <script src="https://unpkg.com"></script>
+  <style>
+    body, html, #map { margin: 0; padding: 0; height: 100%; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    // Центр на Мурунтау / Бесапан
+    var map = L.map('map').setView([41.52, 64.57], 13);
+
+    // Спутниковая подложка Esri (чтобы было как в Google Earth)
+    L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
+      maxZoom: 19
+    }).addTo(map);
+
+    // Загрузка вашего KMZ файла
+    var kmz = L.kmzLayer().addTo(map);
+    kmz.load('map.kmz');
+
+    // Определение и слежение за вашим GPS-местоположением
+    var userMarker = null;
+    map.locate({ setView: false, watch: true, enableHighAccuracy: true });
+
+    map.on('locationfound', function(e) {
+      if (!userMarker) {
+        userMarker = L.circleMarker(e.latlng, {
+          radius: 8,
+          fillColor: '#007bff',
+          color: '#ffffff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 0.9
+        }).addTo(map);
+      } else {
+        userMarker.setLatLng(e.latlng);
+      }
+    });
+  </script>
+</body>
+</html>

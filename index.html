@@ -6,45 +6,74 @@
   <title>Карта</title>
   <link rel="stylesheet" href="https://unpkg.com" />
   <script src="https://unpkg.com"></script>
-  <!-- Библиотека для чтения KMZ с учетом поворота картинок -->
+  <script src="https://unpkg.com"></script>
   <script src="https://unpkg.com"></script>
   <style>
     body, html, #map { margin: 0; padding: 0; height: 100%; width: 100%; }
+    .gps-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 15px;
+      z-index: 1000;
+      background: #ffffff;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <button class="gps-btn" onclick="centerOnUser()">📍 Мое местоположение</button>
   <script>
-    // Центр на Мурунтау / Бесапан
     var map = L.map('map').setView([41.52, 64.57], 13);
 
-    // Спутниковая подложка Esri (чтобы было как в Google Earth)
+    // Спутниковая подложка Esri
     L.tileLayer('https://arcgisonline.com{z}/{y}/{x}', {
       maxZoom: 19
     }).addTo(map);
 
     // Загрузка вашего KMZ файла
     var kmz = L.kmzLayer().addTo(map);
+    kmz.on('load', function(e) {
+      map.fitBounds(e.layer.getBounds());
+    });
     kmz.load('map.kmz');
 
-    // Определение и слежение за вашим GPS-местоположением
+    // Отслеживание GPS-местоположения
     var userMarker = null;
+    var userLatLng = null;
+
     map.locate({ setView: false, watch: true, enableHighAccuracy: true });
 
     map.on('locationfound', function(e) {
+      userLatLng = e.latlng;
       if (!userMarker) {
         userMarker = L.circleMarker(e.latlng, {
-          radius: 8,
+          radius: 9,
           fillColor: '#007bff',
           color: '#ffffff',
-          weight: 2,
+          weight: 3,
           opacity: 1,
-          fillOpacity: 0.9
+          fillOpacity: 1
         }).addTo(map);
       } else {
         userMarker.setLatLng(e.latlng);
       }
     });
+
+    function centerOnUser() {
+      if (userLatLng) {
+        map.setView(userLatLng, 16);
+      } else {
+        alert('Ожидаем сигнал GPS... Разрешите доступ к геолокации.');
+        map.locate({ setView: true, enableHighAccuracy: true });
+      }
+    }
   </script>
 </body>
 </html>
